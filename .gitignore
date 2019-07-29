@@ -7,3 +7,9 @@ MyData.csv
 user-daniel.csv
 user-nao-existe.csv
 data-test.txt
+*.zip
+*.csv
+server.R
+ui.R
+global.R
+secrets.R
