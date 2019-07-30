@@ -7,7 +7,9 @@
 ldap_login(input, output, ui_name, modal = FALSE, ldap.url, ldap.dc,
   ldap.filtro = "sAMAccountName", ldap.dominio, ldap.campos,
   label.user = "Usuário", label.pass = "Senha",
-  label.button.go = "Login", label.title = "Shiny LDAP Login")
+  label.button.go = "Login", label.button.cancel = "Cancel",
+  label.title = "Shiny LDAP Login", callback.return = function(result)
+  { })
 }
 \arguments{
 \item{love}{Do you love cats? Defaults to TRUE.}
