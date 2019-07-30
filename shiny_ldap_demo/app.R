@@ -23,6 +23,7 @@ secrets.path <- paste0(find.package('ShinyLdap'), '/shiny_ldap_demo/secrets.R')
 # if exist load secrets.R
 if (file.exists(secrets.path)) {
   message('loading file: ', secrets.path)
+  message('getwd() : ', getwd())
   source(secrets.path, echo=TRUE) # CONFIG FILE WITH PASSWORD
 }
 

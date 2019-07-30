@@ -20,7 +20,7 @@ ldap_login <- function(input, output, ui_name, modal = FALSE,
 
 ) {
 
-  message('R Shiny Ldap function v.: ', '0.0.7')
+  message('R Shiny Ldap function v.: ', '0.0.9')
   message('Ldap.url: ', ldap.url)
 
   #TODO verificar parametros
@@ -37,7 +37,7 @@ ldap_login <- function(input, output, ui_name, modal = FALSE,
   if (ldap.filtro=='') {
     stop ('You need to inform ldap.dominio like "intranet"')
   }
-  if (ldap.campos=='') {
+  if (length(ldap.campos) == 0) {
     stop ("You need to inform ldap.campos like c('dn:', 'cn:', 'sn:', 'title:','displayName:', 'name:', 'employeeID:', 'sAMAccountName:'")
   }
 
@@ -45,6 +45,11 @@ ldap_login <- function(input, output, ui_name, modal = FALSE,
   # VARS
 
   comando <- 'ldapsearch -H ldap_url -x -D "ldap_dominio\\ldap_user" -w ldap_pass -b "ldap_dc" "(&(ldap_filtro=ldap_user))"'
+
+  # Functions 1
+
+
+
 
   # prog
 
@@ -83,13 +88,7 @@ ldap_login <- function(input, output, ui_name, modal = FALSE,
   output[[ui_table]] <- shiny::renderTable(result$table_data);
 
 
-  # FUNCTIONS
-
-  #tem comando
-  temComando <- function(comando) {
-    tmp <- Sys.which(comando)
-    return (!(paste0(tmp)==''))
-  }
+  # FUNCTIONs 2
 
   #consulta LDAP
   consultaLdap <- function(usuario, senha) {
@@ -178,19 +177,10 @@ ldap_login <- function(input, output, ui_name, modal = FALSE,
 
 }
 
-
-
-
-
-
-
-dogs_over_cats <- function(agree=TRUE){
-  if(agree==TRUE){
-    print("Woof woof! 2")
-  }
-  else {
-    print("Try again. 2")
-  }
+#tem comando
+temComando <- function(comando) {
+  tmp <- Sys.which(comando)
+  return (!(paste0(tmp)==''))
 }
 
 
