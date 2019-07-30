@@ -7,25 +7,38 @@
 #' @examples
 #' ldap_login()
 
-ldap_login <- function(input, output, ui_name,
+ldap_login <- function(input, output, ui_name, modal = FALSE,
               ldap.url,
               ldap.dc,
-              ldap.filtro,
+              ldap.filtro = 'sAMAccountName', # for AD LDAP Server
               ldap.dominio,
               ldap.campos,
               label.user = 'Usuário',
               label.pass = 'Senha',
-              label.button.go = 'Login'
+              label.button.go = 'Login',
+              label.title = 'Shiny LDAP Login'
 
 ) {
 
-  message('R Shiny Ldap function v.: ', '0.0.6')
+  message('R Shiny Ldap function v.: ', '0.0.7')
   message('Ldap.url: ', ldap.url)
 
   #TODO verificar parametros
 
-  if (1==2) {
-    stop ('erro','1=2')
+  if (ldap.url=='') {
+    stop ('You need to inform ldap.url like "https://ldap.domain.com:port"')
+  }
+  if (ldap.dc=='') {
+    stop ('You need to inform ldap.dc like "dc=ldapserver,dc=com"')
+  }
+  if (ldap.filtro=='') {
+    stop ('You need to inform ldap.filtro like "sAMAccountName"')
+  }
+  if (ldap.filtro=='') {
+    stop ('You need to inform ldap.dominio like "intranet"')
+  }
+  if (ldap.campos=='') {
+    stop ("You need to inform ldap.campos like c('dn:', 'cn:', 'sn:', 'title:','displayName:', 'name:', 'employeeID:', 'sAMAccountName:'")
   }
 
 
@@ -43,9 +56,19 @@ ldap_login <- function(input, output, ui_name,
 
   result <- shiny::reactiveValues(data = NULL)
 
+  temLdap = temComando('ldapsearch')
+  cat(file=stderr(), "have ldap:", temLdap,'\n')
+  if (!temLdap) {
+    # No LDAPSEARCH COMMAND
+    stop ('You need to install LDAP-UTILS (ldapsearch command)')
+  }
+
+  if (modal) {
+    shiny::showModal(modal_ui)
+  }
+
   go_click <- observeEvent(input[[ui_actBtn]], {
-    temLdap = temComando('ldapsearch')
-    cat(file=stderr(), "temldap:", temLdap,'\n')
+
     if (temLdap) {
       result$data <- consultaLdap(input[[ui_txtUser]],input[[ui_txtPass]])
       result$table_data <- userLdap(input[[ui_txtUser]],input[[ui_txtPass]])
@@ -70,12 +93,12 @@ ldap_login <- function(input, output, ui_name,
 
   #consulta LDAP
   consultaLdap <- function(usuario, senha) {
-    newC <- sub('ldap_url', ldap_url, comando)
-    newC <- sub('ldap_dominio', ldap_dominio,newC)
+    newC <- sub('ldap_url', ldap.url, comando)
+    newC <- sub('ldap_dominio', ldap.dominio,newC)
     newC <- gsub('ldap_user',usuario,newC)
     newC <- sub('ldap_pass',senha,newC)
-    newC <- sub('ldap_filtro',ldap_filtro,newC)
-    newC <- sub('ldap_dc',ldap_dc,newC)
+    newC <- sub('ldap_filtro',ldap.filtro,newC)
+    newC <- sub('ldap_dc',ldap.dc,newC)
     cat(file=stderr(),"Comando: ", newC, "\n")
     tmp <- system(paste0(newC),intern = TRUE)
     cat(file=stderr(),"tmp: ", tmp, "\n")
@@ -86,6 +109,7 @@ ldap_login <- function(input, output, ui_name,
 
     if (atributos == 49) {
       # erro de usuário / senha
+      message('invalid user / password')
       res <- 49
     } else {
       res <- tmp;
@@ -98,7 +122,7 @@ ldap_login <- function(input, output, ui_name,
     resLdap <- consultaLdap(usuario, senha)
     cat(file=stderr(),"resLdap: ", resLdap, "\n")
     if (!is.numeric(resLdap)) {
-      dt_usuario <- unique (grep(paste(ldap_campos,collapse="|"), resLdap, value=TRUE))
+      dt_usuario <- unique (grep(paste(ldap.campos,collapse="|"), resLdap, value=TRUE))
       dados <- data.frame('id' = separaTxt(dt_usuario)[1],
                           'dados' = separaTxt(dt_usuario)[2])
       return (dados[2])
@@ -107,15 +131,10 @@ ldap_login <- function(input, output, ui_name,
     }
   }
 
-
-
-
-
-  #build LOGIN UI
-
-  output[[ui_name]] <- shiny::renderUI({
+  # LOGIN UI
+  login_ui <- shiny::renderUI({
     shiny::fluidPage(
-      shiny::titlePanel('Login Shiny'),
+      shiny::titlePanel(label.title), # 'Login Shiny'
       shiny::fluidRow(shiny::textInput(ui_txtUser,label.user,""), #USER
                       shiny::passwordInput(ui_txtPass,label.pass,"")), #PASS
       shiny::actionButton(ui_actBtn, label.button.go), #BTN GO
@@ -123,6 +142,20 @@ ldap_login <- function(input, output, ui_name,
                  shiny::tableOutput('table'))
     )
   })
+
+  modal_ui <- shiny::modalDialog(title = label.title,
+                                 shiny::div(
+                                   shiny::textInput(ui_txtUser,label.user,""),
+                                   shiny::passwordInput(ui_txtPass,label.pass,"")),
+                                 shiny::actionButton(ui_actBtn, label.button.go),
+                                 shiny::h2( shiny::verbatimTextOutput(ui_txtInfo),
+                                            shiny::tableOutput('table'))
+                                 )
+
+  #build LOGIN UI
+
+  output[[ui_name]] <- login_ui
+
 
   # for create
   if (1==2) {

@@ -4,9 +4,10 @@
 \alias{ldap_login}
 \title{A ldap_functions Function}
 \usage{
-ldap_login(input, output, ui_name, ldap.url, ldap.dc, ldap.filtro,
-  ldap.dominio, ldap.campos, label.user = "Usuário",
-  label.pass = "Senha", label.button.go = "Login")
+ldap_login(input, output, ui_name, modal = FALSE, ldap.url, ldap.dc,
+  ldap.filtro = "sAMAccountName", ldap.dominio, ldap.campos,
+  label.user = "Usuário", label.pass = "Senha",
+  label.button.go = "Login", label.title = "Shiny LDAP Login")
 }
 \arguments{
 \item{love}{Do you love cats? Defaults to TRUE.}

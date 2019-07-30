@@ -1,4 +1,4 @@
-﻿# GLOBAL.R
+# GLOBAL.R
 
 
 # instala os pacotes faltando.
@@ -10,12 +10,32 @@ library('shiny')
 library('readr')
 
 
-ldap_url <- 'ldap://jacarta.intranet....:389'
-ldap_dc <- 'dc=intranet,dc=mpgo'
-ldap_filtro <- 'sAMAccountName'
-ldap_dominio <- 'intranet'
-ldap_dc <- 'dc=intranet,dc=mpgo'
-ldap_campos <- c('dn:', 'cn:', 'sn:', 'title:','displayName:', 'name:', 'employeeID:', 'sAMAccountName:', 'mail:','G_MPTV_MEMBROS', 'G_MPTV_Users','title:' )
+# VARS
+
+secrets.ldap.url <<- 'ldap://jacarta.,,,....:389'  # LDAP URL:port
+secrets.ldap.dc <<- 'dc=ldapserver,dc=com' # LDAP DC
+secrets.ldap.filtro <<- 'sAMAccountName'  # use this filter for WINDOWS AD
+secrets.ldap.dominio <<- 'intranet' # LDAP DOMAIN
+secrets.ldap.campos <<- c('dn:', 'cn:', 'sn:', 'title:','displayName:',
+                          'name:', 'employeeID:', 'sAMAccountName:', 'mail:',
+                          'G_MPTV_MEMBROS', 'G_MPTV_Users','title:')  # LDAP FIELDS TO SHOW
+
+secrets.path <- paste0(find.package('ShinyLdap'), '/shiny_ldap_demo/secrets.R')
+
+
+# if exist load secrets.R
+if (file.exists(secrets.path)) {
+  message('loading file: ', secrets.path)
+  source(secrets.path, echo=TRUE) # CONFIG FILE WITH PASSWORD
+}
+
+
+
+ldap_url <- secrets.ldap.dc
+ldap_dc <- secrets.ldap.dc
+ldap_filtro <- secrets.ldap.filtro
+ldap_dominio <- secrets.ldap.dominio
+ldap_campos <- secrets.ldap.campos
 comando <- 'ldapsearch -H ldap_url -x -D "ldap_dominio\\ldap_user" -w ldap_pass -b "ldap_dc" "(&(ldap_filtro=ldap_user))"'
 
 debug_mode = 1; # 0 sem debug.
@@ -40,7 +60,7 @@ consultaLdap <- function(usuario, senha) {
   cat(file=stderr(),"atributos: ", atributos, "\n")
 
   if (is.null(atributos)) atributos = 0
-  
+
   if (atributos == 49) {
     # erro de usuário / senha
     res <- 49
@@ -67,5 +87,5 @@ userLdap <- function(usuario, senha) {
     return (resLdap)
   }
 
-  
+
 }

@@ -30,8 +30,6 @@ if (file.exists(secrets.path)) {
 
 
 
-
-
 # server
 server <- function(input, output, session) {
 
@@ -39,6 +37,7 @@ server <- function(input, output, session) {
 
   ShinyLdap::ldap_login(input, output,
                         ui_name = 'ui_login',
+                        modal = FALSE,
                         ldap.url = secrets.ldap.url,
                         ldap.dc = secrets.ldap.dc,
                         ldap.filtro = secrets.ldap.filtro,
