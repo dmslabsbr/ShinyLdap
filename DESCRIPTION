@@ -1,13 +1,13 @@
 Package: ShinyLdap
 Title: R Shiny Ldap Login Client
-Version: 0.0.1.8
+Version: 0.0.1.9
 Authors@R: 
     person(given = "Daniel",
            family = "S",
            role = c("aut", "cre"),
            email = "suporte@neoage.com.br",
            comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: Shiny Ldap Login Client (one paragraph).
+Description: A dialog box that verify a username and password on an LDAP server.
 Depends: R (>= 3.3.2), shiny, readr
 License: What license it uses
 Encoding: UTF-8

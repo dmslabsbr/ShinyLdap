@@ -6,7 +6,7 @@
 \alias{ShinyLdap-package}
 \title{ShinyLdap: R Shiny Ldap Login Client}
 \description{
-Shiny Ldap Login Client (one paragraph).
+A dialog box that verify a username and password on an LDAP server.
 }
 \author{
 \strong{Maintainer}: Daniel S \email{suporte@neoage.com.br} (YOUR-ORCID-ID)

@@ -53,7 +53,7 @@ ldap_login <- function(input, output, ui_name, modal = FALSE,
 
 ) {
 
-  message('R Shiny Ldap function v.: ', '0.0.18')
+  message('* R Shiny Ldap function v.: ', '0.0.20', ' - - - - ', Sys.time(), ' - - - -')
   message('Ldap.url: ', ldap.url)
 
   #TODO verificar parametros
@@ -157,13 +157,17 @@ ldap_login <- function(input, output, ui_name, modal = FALSE,
 
       lista_sep <- separaTxt(dt_usuario)
 
+      dataRet <- list()
       for (i in lista_sep) {
-        message(i,' : ', lista_sep[i])
+        message('* [', i,'] : ', lista_sep[i], '   ')
+        dataRet[sub(':','',i)] <- lista_sep[i]
       }
 
-      dados <- data.frame('id' = separaTxt(dt_usuario)[1],
-                          'dados' = separaTxt(dt_usuario)[2])
-      return (dados[2])
+      #dados <- data.frame('id' = separaTxt(dt_usuario)[1],
+      #                   'dados' = separaTxt(dt_usuario)[2])
+      #return (dados[2])
+      #return (lista_sep)
+      return (dataRet)
     } else {
       return (resLdap)
     }
