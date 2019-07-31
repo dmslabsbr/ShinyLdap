@@ -53,7 +53,7 @@ ldap_login <- function(input, output, ui_name, modal = FALSE,
 
 ) {
 
-  message('* R Shiny Ldap function v.: ', '0.0.20', ' - - - - ', Sys.time(), ' - - - -')
+  message('* R Shiny Ldap function v.: ', '0.0.20a', ' - - - - ', Sys.time(), ' - - - -')
   message('Ldap.url: ', ldap.url)
 
   #TODO verificar parametros
@@ -86,7 +86,6 @@ ldap_login <- function(input, output, ui_name, modal = FALSE,
   ui_actBtn <- paste0(ui_name,'_GO')
   ui_closeBtn <- paste0(ui_name,'_CLOSE')
   ui_txtInfo <- paste0(ui_name,'txtInfo')
-  #ui_table <- paste0(ui_name,'table')
 
   result <- list()
   result$ldap <- FALSE
@@ -102,6 +101,8 @@ ldap_login <- function(input, output, ui_name, modal = FALSE,
   if (!temLdap) {
     # No LDAPSEARCH COMMAND
     # stop ('You need to install LDAP-UTILS (ldapsearch command)')
+    # just test
+
   }
 
   modal_ui <- shiny::modalDialog(title = label.title,
@@ -129,7 +130,8 @@ ldap_login <- function(input, output, ui_name, modal = FALSE,
     newC <- sub('ldap_pass',senha,newC)
     newC <- sub('ldap_filtro',ldap.filtro,newC)
     newC <- sub('ldap_dc',ldap.dc,newC)
-    cat(file=stderr(),"Comando: ", newC, "\n")
+    cmd_nopass <- sub(senha,'******',newC)
+    cat(file=stderr(),"Comando: ", cmd_nopass, "\n")
     tmp <- system(paste0(newC),intern = TRUE)
     cat(file=stderr(),"tmp: ", tmp, "\n")
     atributos <- attr(tmp,which = "status")
@@ -157,17 +159,10 @@ ldap_login <- function(input, output, ui_name, modal = FALSE,
 
       lista_sep <- separaTxt(dt_usuario)
 
-      dataRet <- list()
-      for (i in lista_sep) {
-        message('* [', i,'] : ', lista_sep[i], '   ')
-        dataRet[sub(':','',i)] <- lista_sep[i]
-      }
+      message('lista_SEP')
+      print(lista_sep)
 
-      #dados <- data.frame('id' = separaTxt(dt_usuario)[1],
-      #                   'dados' = separaTxt(dt_usuario)[2])
-      #return (dados[2])
-      #return (lista_sep)
-      return (dataRet)
+      return (lista_sep)
     } else {
       return (resLdap)
     }
@@ -180,7 +175,6 @@ ldap_login <- function(input, output, ui_name, modal = FALSE,
     result$btn <- 'GO'
     result$user <- input[[ui_txtUser]]
     if (temLdap) {
-      # TODO - make one query only.
       result$data <- consultaLdap(input[[ui_txtUser]],input[[ui_txtPass]])
       result$table_data <- userLdap(result$data)
 
@@ -263,7 +257,13 @@ temComando <- function(comando) {
 }
 # split txt
 separaTxt <- function(info) {
-  return (c(strsplit(info,': '))[[1]])
+  lst <- list()
+  for (i in info) {
+    elem <- strsplit(i,': ')[[1]]
+    lst[elem[1]] <- elem[2]
+  }
+  ret <- lst
+  return (ret)
 }
 
 

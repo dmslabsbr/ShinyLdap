@@ -1,6 +1,6 @@
 Package: ShinyLdap
 Title: R Shiny Ldap Login Client
-Version: 0.0.1.9
+Version: 0.0.2.0
 Authors@R: 
     person(given = "Daniel",
            family = "S",

@@ -115,8 +115,8 @@ ui <- fluidPage(
       'Button: ', verbatimTextOutput("btn"),
       'Ldap: ', verbatimTextOutput("ldap"),
       'User: ', verbatimTextOutput("user"),
-      'Error: ', verbatimTextOutput("err"),
-             tableOutput('table_res'))
+      'Error: ', verbatimTextOutput("err")),
+  tableOutput('table_res')
 )
 
 
