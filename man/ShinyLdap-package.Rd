@@ -4,7 +4,7 @@
 \name{ShinyLdap-package}
 \alias{ShinyLdap}
 \alias{ShinyLdap-package}
-\title{ShinyLdap: R Shiny Ldap Login Client (One Line, Title Case)}
+\title{ShinyLdap: R Shiny Ldap Login Client}
 \description{
 Shiny Ldap Login Client (one paragraph).
 }

@@ -1,11 +1,42 @@
-#' A ldap_functions Function
+#' A ldap_login function
 #'
-#' This function allows you to express your love of cats.
-#' @param love Do you love cats? Defaults to TRUE.
-#' @keywords cats
+#' This function allows you to verify a username and password on an LDAP server.
+#' @param input Shiny input object passed from the server.
+#' @param output Shiny output object passed from the server.
+#' @param ui_name the name of the UI output. That is, put \code{uiOutput(ui_name)} where
+#'        you want the Login Dialog in \code{ui.R}.
+#' @param modal boolean (TRUE / FALSE) indicating the form mode.
+#' @param ldap.url --
+#' @param ldap.dc --
+#' @param ldap.filtro = 'sAMAccountName', # for AD LDAP Server
+#' @param ldap.dominio --
+#' @param ldap.campos --
+#' @param label.user = 'Usuário',
+#' @param label.pass = 'Senha',
+#' @param label.button.go = 'Login',
+#' @param label.button.cancel = 'Cancel',
+#' @param label.title = 'Shiny LDAP Login',
+#' @param callback.return a function called when the user click a response button. This function can
+#'        return a error message.
+#'
+#'
+#' @keywords ldap
 #' @export
 #' @examples
-#' ldap_login()
+#'   ShinyLdap::ldap_login(input, output,
+#'      ui_name = 'ui_login',
+#'      modal = TRUE,
+#'      ldap.url = secrets.ldap.url,
+#'      ldap.dc = secrets.ldap.dc,
+#'      ldap.filtro = secrets.ldap.filtro,
+#'      ldap.dominio = secrets.ldap.dominio,
+#'      ldap.campos = secrets.ldap.campos,
+#'      label.user = 'Usuário',
+#'      label.pass = 'Senha',
+#'      label.button.go = 'Login',
+#'      label.button.cancel = 'Cancel',
+#'      label.title = 'Shiny LDAP Login',
+#'      callback.return = ldap.callback.return)
 
 ldap_login <- function(input, output, ui_name, modal = FALSE,
               ldap.url,
@@ -22,7 +53,7 @@ ldap_login <- function(input, output, ui_name, modal = FALSE,
 
 ) {
 
-  message('R Shiny Ldap function v.: ', '0.0.16')
+  message('R Shiny Ldap function v.: ', '0.0.18')
   message('Ldap.url: ', ldap.url)
 
   #TODO verificar parametros
@@ -36,7 +67,7 @@ ldap_login <- function(input, output, ui_name, modal = FALSE,
   if (ldap.filtro=='') {
     stop ('You need to inform ldap.filtro like "sAMAccountName"')
   }
-  if (ldap.filtro=='') {
+  if (ldap.dominio =='') {
     stop ('You need to inform ldap.dominio like "intranet"')
   }
   if (length(ldap.campos) == 0) {
@@ -55,7 +86,7 @@ ldap_login <- function(input, output, ui_name, modal = FALSE,
   ui_actBtn <- paste0(ui_name,'_GO')
   ui_closeBtn <- paste0(ui_name,'_CLOSE')
   ui_txtInfo <- paste0(ui_name,'txtInfo')
-  ui_table <- paste0(ui_name,'table')
+  #ui_table <- paste0(ui_name,'table')
 
   result <- list()
   result$ldap <- FALSE
@@ -77,8 +108,7 @@ ldap_login <- function(input, output, ui_name, modal = FALSE,
                                  shiny::div(
                                    shiny::textInput(ui_txtUser,label.user,""),
                                    shiny::passwordInput(ui_txtPass,label.pass,"")),
-                                 shiny::h2( shiny::verbatimTextOutput(ui_txtInfo),
-                                            shiny::tableOutput(ui_table)), # table
+                                 shiny::h2( shiny::verbatimTextOutput(ui_txtInfo), ''),
                                  footer = shiny::column(
                                    shiny::actionButton(ui_actBtn, label.button.go),
                                    shiny::actionButton(ui_closeBtn, label.button.cancel),
@@ -89,39 +119,7 @@ ldap_login <- function(input, output, ui_name, modal = FALSE,
     shiny::showModal(modal_ui)
   }
 
-  go_click <- shiny::observeEvent(input[[ui_actBtn]], {
-    message('go_click')
-    result$btn <- 'GO'
-    result$user <- input[[ui_txtUser]]
-    if (temLdap) {
-      # TODO - make one query only.
-      result$data <- consultaLdap(input[[ui_txtUser]],input[[ui_txtPass]])
-      result$table_data <- userLdap(input[[ui_txtUser]],input[[ui_txtPass]])
-
-      if (is.numeric(result$data)) {
-        result$err <- result$data
-      }
-    } else {
-      result$data <- 'LDAP not found!'
-      result$err <- '100'
-    }
-    chama <- callback.return(result)
-    if (modal) {shiny::removeModal()}
-  })
-
-
-  close_click <- shiny::observeEvent(input[[ui_closeBtn]], {
-    message('close_click')
-    result$btn <- 'CANCEL'
-    chama <- callback.return(result)
-    if (modal) {shiny::removeModal()}
-  })
-
-  output[[ui_txtInfo]] <- shiny::renderPrint(result$data);
-  output[[ui_table]] <- shiny::renderTable(result$table_data);
-
-
-  # FUNCTIONs 2
+  # functions
 
   #consulta LDAP
   consultaLdap <- function(usuario, senha) {
@@ -150,11 +148,19 @@ ldap_login <- function(input, output, ui_name, modal = FALSE,
   }
 
   #userLdap
-  userLdap <- function(usuario, senha) {
-    resLdap <- consultaLdap(usuario, senha)
+  userLdap <- function(resLdap) {
     cat(file=stderr(),"resLdap: ", resLdap, "\n")
     if (!is.numeric(resLdap)) {
       dt_usuario <- unique (grep(paste(ldap.campos,collapse="|"), resLdap, value=TRUE))
+
+      message('dt_usuário: ', dt_usuario)
+
+      lista_sep <- separaTxt(dt_usuario)
+
+      for (i in lista_sep) {
+        message(i,' : ', lista_sep[i])
+      }
+
       dados <- data.frame('id' = separaTxt(dt_usuario)[1],
                           'dados' = separaTxt(dt_usuario)[2])
       return (dados[2])
@@ -162,6 +168,46 @@ ldap_login <- function(input, output, ui_name, modal = FALSE,
       return (resLdap)
     }
   }
+
+
+
+  go_click <- shiny::observeEvent(input[[ui_actBtn]], {
+    message('go_click')
+    result$btn <- 'GO'
+    result$user <- input[[ui_txtUser]]
+    if (temLdap) {
+      # TODO - make one query only.
+      result$data <- consultaLdap(input[[ui_txtUser]],input[[ui_txtPass]])
+      result$table_data <- userLdap(result$data)
+
+      if (is.numeric(result$data)) {
+        result$err <- result$data
+      }
+    } else {
+      result$data <- 'LDAP not found!'
+      result$err <- '100'
+    }
+    chama <- callback.return(result)
+    message("callback_chama: ", chama )
+    if (modal) {
+      if (chama == '') {
+        shiny::removeModal()
+      } else {
+        output[[ui_txtInfo]] <- shiny::renderPrint(paste0(chama));
+      }
+    }
+  })
+
+
+  close_click <- shiny::observeEvent(input[[ui_closeBtn]], {
+    message('close_click')
+    result$btn <- 'CANCEL'
+    chama <- callback.return(result)
+    if (modal) {shiny::removeModal()}
+  })
+
+
+
 
   # LOGIN UI
   login_ui <- shiny::renderUI({
@@ -173,7 +219,7 @@ ldap_login <- function(input, output, ui_name, modal = FALSE,
       shiny::actionButton(ui_actBtn, label.button.go), #BTN GO
       shiny::actionButton(ui_closeBtn, label.button.cancel),
       shiny::h2( shiny::verbatimTextOutput(ui_txtInfo),
-                 shiny::tableOutput(ui_table)) # table
+                 '')
     )
   })
 
@@ -204,7 +250,7 @@ ldap_login <- function(input, output, ui_name, modal = FALSE,
 
 }
 
-# functions
+# functions extenal
 
 #tem comando
 temComando <- function(comando) {
@@ -215,6 +261,5 @@ temComando <- function(comando) {
 separaTxt <- function(info) {
   return (c(strsplit(info,': '))[[1]])
 }
-
 
 

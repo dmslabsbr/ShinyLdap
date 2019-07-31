@@ -54,6 +54,17 @@ ldap.callback.return <- function(res) {
   react.res$ldap <- res$ldap
   react.res$user <- res$user
   react.res$err <- res$err
+
+  ret_msg <- ''
+
+  if (react.res$err == 100) {
+    ret_msg <- "Error: Ldap search command not found! Is 'ldap-utils' installed?"
+  }
+  if (react.res$err == 49) {
+    ret_msg <- "Error: Incorrect username or password!"
+  }
+
+  return(ret_msg)
 }
 
 
@@ -67,7 +78,7 @@ server <- function(input, output, session) {
 
   ShinyLdap::ldap_login(input, output,
                         ui_name = 'ui_login',
-                        modal = FALSE,
+                        modal = TRUE,
                         ldap.url = secrets.ldap.url,
                         ldap.dc = secrets.ldap.dc,
                         ldap.filtro = secrets.ldap.filtro,
@@ -81,7 +92,7 @@ server <- function(input, output, session) {
                         callback.return = ldap.callback.return)
 
 
-  # output$table_res <- renderTable(react.res$data);
+  output$table_res <- renderTable(react.res$table_data);
   output$information <- renderText (react.res$data)
   output$btn <- renderText(react.res$btn)
   output$ldap <- renderText(react.res$ldap)

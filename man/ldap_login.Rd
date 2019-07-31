@@ -2,7 +2,7 @@
 % Please edit documentation in R/ldap_functions.R
 \name{ldap_login}
 \alias{ldap_login}
-\title{A ldap_functions Function}
+\title{A ldap_login function}
 \usage{
 ldap_login(input, output, ui_name, modal = FALSE, ldap.url, ldap.dc,
   ldap.filtro = "sAMAccountName", ldap.dominio, ldap.campos,
@@ -12,12 +12,55 @@ ldap_login(input, output, ui_name, modal = FALSE, ldap.url, ldap.dc,
   { })
 }
 \arguments{
-\item{love}{Do you love cats? Defaults to TRUE.}
+\item{input}{Shiny input object passed from the server.}
+
+\item{output}{Shiny output object passed from the server.}
+
+\item{ui_name}{the name of the UI output. That is, put \code{uiOutput(ui_name)} where
+you want the Login Dialog in \code{ui.R}.}
+
+\item{modal}{boolean (TRUE / FALSE) indicating the form mode.}
+
+\item{ldap.url}{--}
+
+\item{ldap.dc}{--}
+
+\item{ldap.filtro}{= 'sAMAccountName', # for AD LDAP Server}
+
+\item{ldap.dominio}{--}
+
+\item{ldap.campos}{--}
+
+\item{label.user}{= 'Usuário',}
+
+\item{label.pass}{= 'Senha',}
+
+\item{label.button.go}{= 'Login',}
+
+\item{label.button.cancel}{= 'Cancel',}
+
+\item{label.title}{= 'Shiny LDAP Login',}
+
+\item{callback.return}{a function called when the user click a response button. This function can
+return a error message.}
 }
 \description{
-This function allows you to express your love of cats.
+This function allows you to verify a username and password on an LDAP server.
 }
 \examples{
-ldap_login()
+  ShinyLdap::ldap_login(input, output,
+     ui_name = 'ui_login',
+     modal = TRUE,
+     ldap.url = secrets.ldap.url,
+     ldap.dc = secrets.ldap.dc,
+     ldap.filtro = secrets.ldap.filtro,
+     ldap.dominio = secrets.ldap.dominio,
+     ldap.campos = secrets.ldap.campos,
+     label.user = 'Usuário',
+     label.pass = 'Senha',
+     label.button.go = 'Login',
+     label.button.cancel = 'Cancel',
+     label.title = 'Shiny LDAP Login',
+     callback.return = ldap.callback.return)
 }
-\keyword{cats}
+\keyword{ldap}
