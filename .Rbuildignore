@@ -1,2 +1,15 @@
 ^ShinyLdap\.Rproj$
 ^\.Rproj\.user$
+build.R
+.gitignore
+.Rhistory
+README.md
+^README\.Rmd$
+^cran-comments\.md$
+.RData
+/.*\.txt
+/.*\.csv
+^.*\.txt
+^.*\.csv
+secrets.R
+^LICENSE\.md$

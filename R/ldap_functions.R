@@ -3,19 +3,19 @@
 #' This function allows you to verify a username and password on an LDAP server.
 #' @param input Shiny input object passed from the server.
 #' @param output Shiny output object passed from the server.
-#' @param ui_name the name of the UI output. That is, put \code{uiOutput(ui_name)} where
-#'        you want the Login Dialog in \code{ui.R}.
+#' @param ui_name the name of the UI output. That is, put `uiOutput(ui_name)` where
+#'        you want the Login Dialog in `ui.R`.
 #' @param modal boolean (TRUE / FALSE) indicating the form mode.
-#' @param ldap.url --
-#' @param ldap.dc --
-#' @param ldap.filtro = 'sAMAccountName', # for AD LDAP Server
-#' @param ldap.dominio --
-#' @param ldap.campos --
-#' @param label.user = 'Usuário',
-#' @param label.pass = 'Senha',
-#' @param label.button.go = 'Login',
-#' @param label.button.cancel = 'Cancel',
-#' @param label.title = 'Shiny LDAP Login',
+#' @param ldap.url ldap server url
+#' @param ldap.dc ldap server DC
+#' @param ldap.filtro 'sAMAccountName', # for AD LDAP Server
+#' @param ldap.dominio ldap server domain
+#' @param ldap.campos ldap fields to get
+#' @param label.user user label
+#' @param label.pass = password label
+#' @param label.button.go = login button label
+#' @param label.button.cancel = cancel button label
+#' @param label.title = Login dialog title
 #' @param callback.return a function called when the user click a response button. This function can
 #'        return a error message.
 #'
@@ -23,7 +23,7 @@
 #' @keywords ldap
 #' @export
 #' @examples
-#'   ShinyLdap::ldap_login(input, output,
+#'   shinyldap::ldap_login(input, output,
 #'      ui_name = 'ui_login',
 #'      modal = TRUE,
 #'      ldap.url = secrets.ldap.url,
@@ -31,8 +31,8 @@
 #'      ldap.filtro = secrets.ldap.filtro,
 #'      ldap.dominio = secrets.ldap.dominio,
 #'      ldap.campos = secrets.ldap.campos,
-#'      label.user = 'Usuário',
-#'      label.pass = 'Senha',
+#'      label.user = 'User',
+#'      label.pass = 'Password',
 #'      label.button.go = 'Login',
 #'      label.button.cancel = 'Cancel',
 #'      label.title = 'Shiny LDAP Login',
@@ -44,8 +44,8 @@ ldap_login <- function(input, output, ui_name, modal = FALSE,
               ldap.filtro = 'sAMAccountName', # for AD LDAP Server
               ldap.dominio,
               ldap.campos,
-              label.user = 'Usuário',
-              label.pass = 'Senha',
+              label.user = 'User',
+              label.pass = 'Password',
               label.button.go = 'Login',
               label.button.cancel = 'Cancel',
               label.title = 'Shiny LDAP Login',
@@ -53,7 +53,7 @@ ldap_login <- function(input, output, ui_name, modal = FALSE,
 
 ) {
 
-  message('* R Shiny Ldap function v.: ', '0.0.20a', ' - - - - ', Sys.time(), ' - - - -')
+  message('* R Shiny Ldap function v.: ', '0.0.21', ' - - - - ', Sys.time(), ' - - - -')
   message('Ldap.url: ', ldap.url)
 
   #TODO verificar parametros
@@ -131,7 +131,8 @@ ldap_login <- function(input, output, ui_name, modal = FALSE,
     newC <- sub('ldap_filtro',ldap.filtro,newC)
     newC <- sub('ldap_dc',ldap.dc,newC)
     cmd_nopass <- sub(senha,'******',newC)
-    cat(file=stderr(),"Comando: ", cmd_nopass, "\n")
+    message('cmd =? :', cmd_nopass == newC)
+    # cat(file=stderr(),"Comando: ", cmd_nopass, "\n")
     tmp <- system(paste0(newC),intern = TRUE)
     cat(file=stderr(),"tmp: ", tmp, "\n")
     atributos <- attr(tmp,which = "status")
@@ -155,7 +156,7 @@ ldap_login <- function(input, output, ui_name, modal = FALSE,
     if (!is.numeric(resLdap)) {
       dt_usuario <- unique (grep(paste(ldap.campos,collapse="|"), resLdap, value=TRUE))
 
-      message('dt_usuário: ', dt_usuario)
+      message('dt_usuario: ', dt_usuario)
 
       lista_sep <- separaTxt(dt_usuario)
 
@@ -228,19 +229,6 @@ ldap_login <- function(input, output, ui_name, modal = FALSE,
   #build LOGIN UI
 
   output[[ui_name]] <- login_ui
-
-
-  # for create
-  if (1==2) {
-    # cmd clear and rebuild
-    devtools::document()
-    devtools::install()
-    usethis::use_package_doc()
-    devtools::document()
-    devtools::build()
-    devtools::build(binary = TRUE, args = c('--preclean'))
-
-  }
 
 
   # THE END

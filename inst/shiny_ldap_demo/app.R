@@ -7,7 +7,7 @@
 
 library (shiny)
 library (readr)
-library (ShinyLdap)
+library (shinyldap)
 
 
 # VARS
@@ -20,7 +20,7 @@ secrets.ldap.campos <<- c('dn:', 'cn:', 'sn:', 'title:','displayName:',
                 'name:', 'employeeID:', 'sAMAccountName:', 'mail:',
                 'G_MPTV_MEMBROS', 'G_MPTV_Users','title:')  # LDAP FIELDS TO SHOW
 
-secrets.path <- paste0(find.package('ShinyLdap'), '/shiny_ldap_demo/secrets.R')
+secrets.path <- paste0(find.package('shinyldap'), '/shiny_ldap_demo/secrets.R')
 secrets.path.2 <- paste0(getwd(), '/secrets.R')
 
 
@@ -76,7 +76,7 @@ server <- function(input, output, session) {
 
   react.res$data <- 'react.res@data'
 
-  ShinyLdap::ldap_login(input, output,
+  shinyldap::ldap_login(input, output,
                         ui_name = 'ui_login',
                         modal = TRUE,
                         ldap.url = secrets.ldap.url,
@@ -84,8 +84,8 @@ server <- function(input, output, session) {
                         ldap.filtro = secrets.ldap.filtro,
                         ldap.dominio = secrets.ldap.dominio,
                         ldap.campos = secrets.ldap.campos,
-                        label.user = 'Usuário',
-                        label.pass = 'Senha',
+                        label.user = 'User',
+                        label.pass = 'Pass',
                         label.button.go = 'Login',
                         label.button.cancel = 'Cancel',
                         label.title = 'Shiny LDAP Login',

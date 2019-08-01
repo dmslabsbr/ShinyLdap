@@ -6,7 +6,7 @@
 \usage{
 ldap_login(input, output, ui_name, modal = FALSE, ldap.url, ldap.dc,
   ldap.filtro = "sAMAccountName", ldap.dominio, ldap.campos,
-  label.user = "Usuário", label.pass = "Senha",
+  label.user = "User", label.pass = "Password",
   label.button.go = "Login", label.button.cancel = "Cancel",
   label.title = "Shiny LDAP Login", callback.return = function(result)
   { })
@@ -21,25 +21,25 @@ you want the Login Dialog in \code{ui.R}.}
 
 \item{modal}{boolean (TRUE / FALSE) indicating the form mode.}
 
-\item{ldap.url}{--}
+\item{ldap.url}{ldap server url}
 
-\item{ldap.dc}{--}
+\item{ldap.dc}{ldap server DC}
 
-\item{ldap.filtro}{= 'sAMAccountName', # for AD LDAP Server}
+\item{ldap.filtro}{'sAMAccountName', # for AD LDAP Server}
 
-\item{ldap.dominio}{--}
+\item{ldap.dominio}{ldap server domain}
 
-\item{ldap.campos}{--}
+\item{ldap.campos}{ldap fields to get}
 
-\item{label.user}{= 'Usuário',}
+\item{label.user}{user label}
 
-\item{label.pass}{= 'Senha',}
+\item{label.pass}{= password label}
 
-\item{label.button.go}{= 'Login',}
+\item{label.button.go}{= login button label}
 
-\item{label.button.cancel}{= 'Cancel',}
+\item{label.button.cancel}{= cancel button label}
 
-\item{label.title}{= 'Shiny LDAP Login',}
+\item{label.title}{= Login dialog title}
 
 \item{callback.return}{a function called when the user click a response button. This function can
 return a error message.}
@@ -48,7 +48,7 @@ return a error message.}
 This function allows you to verify a username and password on an LDAP server.
 }
 \examples{
-  ShinyLdap::ldap_login(input, output,
+  shinyldap::ldap_login(input, output,
      ui_name = 'ui_login',
      modal = TRUE,
      ldap.url = secrets.ldap.url,
@@ -56,8 +56,8 @@ This function allows you to verify a username and password on an LDAP server.
      ldap.filtro = secrets.ldap.filtro,
      ldap.dominio = secrets.ldap.dominio,
      ldap.campos = secrets.ldap.campos,
-     label.user = 'Usuário',
-     label.pass = 'Senha',
+     label.user = 'User',
+     label.pass = 'Password',
      label.button.go = 'Login',
      label.button.cancel = 'Cancel',
      label.title = 'Shiny LDAP Login',

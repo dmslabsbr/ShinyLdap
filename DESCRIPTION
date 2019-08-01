@@ -1,6 +1,6 @@
-Package: ShinyLdap
+Package: shinyldap
 Title: R Shiny Ldap Login Client
-Version: 0.0.2.0
+Version: 0.0.2.1
 Authors@R: 
     person(given = "Daniel",
            family = "S",
@@ -9,7 +9,8 @@ Authors@R:
            comment = c(ORCID = "YOUR-ORCID-ID"))
 Description: A dialog box that verify a username and password on an LDAP server.
 Depends: R (>= 3.3.2), shiny, readr
-License: What license it uses
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.1.1
+Roxygen: list(markdown = TRUE)
