@@ -8,8 +8,9 @@ ldap_login(input, output, ui_name, modal = FALSE, ldap.url, ldap.dc,
   ldap.filtro = "sAMAccountName", ldap.dominio, ldap.campos,
   label.user = "User", label.pass = "Password",
   label.button.go = "Login", label.button.cancel = "Cancel",
-  label.title = "Shiny LDAP Login", callback.return = function(result)
-  { })
+  label.button.modal = "Close", label.title = "Shiny LDAP Login",
+  show.button.cancel = TRUE, show.button.modal = FALSE,
+  callback.return = function(result) { })
 }
 \arguments{
 \item{input}{Shiny input object passed from the server.}
@@ -39,7 +40,13 @@ you want the Login Dialog in \code{ui.R}.}
 
 \item{label.button.cancel}{= cancel button label}
 
+\item{label.button.modal}{= modal button label}
+
 \item{label.title}{= Login dialog title}
+
+\item{show.button.cancel}{= Show the cancel button}
+
+\item{show.button.modal}{= Show the modal button}
 
 \item{callback.return}{a function called when the user click a response button. This function can
 return a error message.}
@@ -60,7 +67,10 @@ This function allows you to verify a username and password on an LDAP server.
      label.pass = 'Password',
      label.button.go = 'Login',
      label.button.cancel = 'Cancel',
+     label.button.modal = 'Close',
      label.title = 'Shiny LDAP Login',
+     show.button.cancel = TRUE,
+     show.button.modal = FALSE,
      callback.return = ldap.callback.return)
 }
 \keyword{ldap}

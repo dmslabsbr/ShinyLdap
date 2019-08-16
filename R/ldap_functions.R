@@ -15,7 +15,10 @@
 #' @param label.pass = password label
 #' @param label.button.go = login button label
 #' @param label.button.cancel = cancel button label
+#' @param label.button.modal = modal button label
 #' @param label.title = Login dialog title
+#' @param show.button.cancel = Show the cancel button
+#' @param show.button.modal = Show the modal button
 #' @param callback.return a function called when the user click a response button. This function can
 #'        return a error message.
 #'
@@ -35,7 +38,10 @@
 #'      label.pass = 'Password',
 #'      label.button.go = 'Login',
 #'      label.button.cancel = 'Cancel',
+#'      label.button.modal = 'Close',
 #'      label.title = 'Shiny LDAP Login',
+#'      show.button.cancel = TRUE,
+#'      show.button.modal = FALSE,
 #'      callback.return = ldap.callback.return)
 
 ldap_login <- function(input, output, ui_name, modal = FALSE,
@@ -48,12 +54,15 @@ ldap_login <- function(input, output, ui_name, modal = FALSE,
               label.pass = 'Password',
               label.button.go = 'Login',
               label.button.cancel = 'Cancel',
+              label.button.modal = 'Close',
               label.title = 'Shiny LDAP Login',
+              show.button.cancel = TRUE,
+              show.button.modal = FALSE,
               callback.return = function (result) {}
 
 ) {
 
-  message('* R Shiny Ldap function v.: ', '0.0.21', ' - - - - ', Sys.time(), ' - - - -')
+  message('* R Shiny Ldap function v.: ', '0.0.21b.1', ' - - - - ', Sys.time(), ' - - - -')
   message('Ldap.url: ', ldap.url)
 
   #TODO verificar parametros
@@ -105,19 +114,27 @@ ldap_login <- function(input, output, ui_name, modal = FALSE,
 
   }
 
-  modal_ui <- shiny::modalDialog(title = label.title,
+  modal_ui <- function() {
+    ui_act <- shiny::actionButton(ui_actBtn, label.button.go)
+    ui_clo <- shiny::actionButton(ui_closeBtn, label.button.cancel)
+    ui_mod <- shiny::modalButton(label.button.modal)
+    if (!show.button.cancel) {ui_clo <- shiny::div()}
+    if (!show.button.modal) {ui_mod <- shiny::div()}
+    shiny::modalDialog(title = label.title,
                                  shiny::div(
                                    shiny::textInput(ui_txtUser,label.user,""),
                                    shiny::passwordInput(ui_txtPass,label.pass,"")),
                                  shiny::h2( shiny::verbatimTextOutput(ui_txtInfo), ''),
                                  footer = shiny::column(
-                                   shiny::actionButton(ui_actBtn, label.button.go),
-                                   shiny::actionButton(ui_closeBtn, label.button.cancel),
-                                   width = 12) # cancel
-  )
+                                   ui_act,
+                                   ui_clo,
+                                   ui_mod,
+                                   width = 12)
+    )
+  }
 
   if (modal) {
-    shiny::showModal(modal_ui)
+    shiny::showModal(modal_ui())
   }
 
   # functions

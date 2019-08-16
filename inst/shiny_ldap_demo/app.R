@@ -88,7 +88,10 @@ server <- function(input, output, session) {
                         label.pass = 'Pass',
                         label.button.go = 'Login',
                         label.button.cancel = 'Cancel',
+                        label.button.modal = 'Close',
                         label.title = 'Shiny LDAP Login',
+                        show.button.cancel = TRUE,
+                        show.button.modal = TRUE,
                         callback.return = ldap.callback.return)
 
 
