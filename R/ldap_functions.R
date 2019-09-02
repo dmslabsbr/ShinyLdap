@@ -62,15 +62,15 @@ ldap_login <- function(input, output, ui_name, modal = FALSE,
 
 ) {
 
-  message('* R Shiny Ldap function v.: ', '0.0.21b.1', ' - - - - ', Sys.time(), ' - - - -')
+  message('* R Shiny Ldap function v.: ', '0.0.2.3o', ' - - - - ', Sys.time(), ' - - - -')
   message('Ldap.url: ', ldap.url)
 
-  #TODO verificar parametros
+  #TODO verificar todos os parametros
 
   if (ldap.url=='') {
     stop ('You need to inform ldap.url like "https://ldap.domain.com:port"')
   }
-  if (ldap.dc=='') {
+  if (ldap.dc=='')  {
     stop ('You need to inform ldap.dc like "dc=ldapserver,dc=com"')
   }
   if (ldap.filtro=='') {
@@ -83,10 +83,14 @@ ldap_login <- function(input, output, ui_name, modal = FALSE,
     stop ("You need to inform ldap.campos like c('dn:', 'cn:', 'sn:', 'title:','displayName:', 'name:', 'employeeID:', 'sAMAccountName:'")
   }
 
+  if (!all(grepl(c(':'), ldap.campos))) {
+    stop ('All ldap.campos elements must have ":" in name')
+  }
 
   # VARS
 
   comando <- 'ldapsearch -H ldap_url -x -D "ldap_dominio\\ldap_user" -w ldap_pass -b "ldap_dc" "(&(ldap_filtro=ldap_user))"'
+
 
   # prog
 
@@ -147,31 +151,25 @@ ldap_login <- function(input, output, ui_name, modal = FALSE,
     newC <- sub('ldap_pass',senha,newC)
     newC <- sub('ldap_filtro',ldap.filtro,newC)
     newC <- sub('ldap_dc',ldap.dc,newC)
-    cmd_nopass <- sub(senha,'******',newC)
-    message('cmd =? :', cmd_nopass == newC)
-    # cat(file=stderr(),"Comando: ", cmd_nopass, "\n")
-    tmp <- system(paste0(newC),intern = TRUE)
-    cat(file=stderr(),"tmp: ", tmp, "\n")
-    atributos <- attr(tmp,which = "status")
-    cat(file=stderr(),"atributos: ", atributos, "\n")
 
-    if (is.null(atributos)) atributos = 0
+    #TODO passwords with space \ " '
 
-    if (atributos == 49) {
-      # erro de usuário / senha
-      message('invalid user / password')
-      res <- 49
-    } else {
-      res <- tmp;
-    }
-    return (res)
+    newC <- c('-H',ldap.url,
+           '-x', '-D',paste0(usuario,'@', ldap.dominio),
+           '-w', senha,
+           '-b', ldap.dc,
+           paste0('(&(sAMAccountName=', usuario, '))'))
+
+    tmp <- processx::run('ldapsearch', newC, error_on_status = FALSE)
+    return (tmp)
   }
 
   #userLdap
   userLdap <- function(resLdap) {
     cat(file=stderr(),"resLdap: ", resLdap, "\n")
     if (!is.numeric(resLdap)) {
-      dt_usuario <- unique (grep(paste(ldap.campos,collapse="|"), resLdap, value=TRUE))
+      dados <- unlist(strsplit(resLdap, split = '\n'))
+      dt_usuario <- unique (grep(paste(ldap.campos,collapse="|"), dados, value=TRUE))
 
       message('dt_usuario: ', dt_usuario)
 
@@ -187,28 +185,83 @@ ldap_login <- function(input, output, ui_name, modal = FALSE,
   }
 
 
+  errosLdap <- function (erro) {
+    lista_err <- c('525','52e','52f','530','531','532','533','568','701','773','775')
+    e <- list()
+    e$e525 <- 'Entry does not exist.'
+    e$e52e <- 'Username is valid but password/credential is invalid.'
+    e$e52f -> 'Account Restrictions are preventing this user from signing in.'
+    e$e530 -> 'Time Restriction:Entry logon time restriction violation'
+    e$e531 <- 'Device Restriction:Entry not allowed to log on to this computer.'
+    e$e532 <- 'Password Expiration: Entry password has expired LDAP User-Account-Control Attribute - ERROR_PASSWORD_EXPIRED'
+    e$e533 -> 'Administratively Disabled: LDAP User-Account-Control Attribute - ACCOUNTDISABLE'
+    e$e568 <- "During a logon attempt, the user's security context accumulated too many security Identifiers. (ie Group-AD)"
+    e$e701 <- 'LDAP Password Expiration: User-Account-Control Attribute - ACCOUNTEXPIRED'
+    e$e773 -> "Password Expiration: Entry's password must be changed before logging on LDAP pwdLastSet: value of 0 indicates admin-required password change - MUST_CHANGE_PASSWD"
+    e$e775 -> 'Intruder Detection:Entry is currently locked out and may not be logged on to LDAP User-Account-Control Attribute - LOCKOUT'
+    e$e999 -> "Undefined error!"
+    # "Can't contact LDAP server"
+
+    lista2 <- paste0('data ',lista_err,',')
+
+    ret <- list(cod = 'nda', msg = 'nda')
+
+    for (i in lista2) {
+      message('ldap-i: ',i)
+      if (any(grep(i,erro))) {
+        po <- grep(i,lista2)
+        ret$cod <- lista_err[po]
+        ret$msg <- unlist(e[paste0('e',ret$cod)])
+        message('return errorLdap: ', ret$msg)
+        return (ret)
+      }
+    }
+    ret$msg <- e$e999
+    ret$cod <- 999
+    return (ret)
+  }
 
   go_click <- shiny::observeEvent(input[[ui_actBtn]], {
     message('go_click')
     result$btn <- 'GO'
     result$user <- input[[ui_txtUser]]
+    isolate({
+      result$err.cod <- 'nda'
+      result$err.msg <- 'nda'
+    })
     if (temLdap) {
-      result$data <- consultaLdap(input[[ui_txtUser]],input[[ui_txtPass]])
+      dadosRaw <- consultaLdap(input[[ui_txtUser]],input[[ui_txtPass]])
+      message('status: ',dadosRaw$status)
+      message('stdout: ',dadosRaw$stdout)
+      message('stderr: ',dadosRaw$stderr)
+      result$status <- dadosRaw$status
+      result$data <- dadosRaw$stdout
+      result$stderr <- dadosRaw$stderr
+      result$timeout <- dadosRaw$timeout
       result$table_data <- userLdap(result$data)
 
-      if (is.numeric(result$data)) {
-        result$err <- result$data
+      if (dadosRaw$status == 0) {
+        result$err.msg <- 'ok'
+        result$err.cod <- 0
+      } else {
+        tmp <- errosLdap(dadosRaw$stderr)
+        result$err.msg <- tmp$msg
+        result$err.cod <- tmp$cod
       }
     } else {
       result$data <- 'LDAP not found!'
-      result$err <- '100'
+      result$err.cod <- '100'
+      result$err.msg <- result$data
+      result$status <- '100'
     }
     chama <- callback.return(result)
     message("callback_chama: ", chama )
     if (modal) {
-      if (chama == '') {
+      if (chama == 'nda') {
         shiny::removeModal()
+        message("removeModal: ", 'modal' )
       } else {
+        message("output: ", 'ui_txtInfo' )
         output[[ui_txtInfo]] <- shiny::renderPrint(paste0(chama));
       }
     }
@@ -221,8 +274,6 @@ ldap_login <- function(input, output, ui_name, modal = FALSE,
     chama <- callback.return(result)
     if (modal) {shiny::removeModal()}
   })
-
-
 
 
   # LOGIN UI

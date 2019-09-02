@@ -3,7 +3,7 @@
 # by DMS 2019
 
 
-# devtools::install_github('dmslabsbr/ShinyLdap', force = TRUE)
+# devtools::install_github('dmslabsbr/ShinyLdap', ref='v.0.23', force = TRUE)
 
 library (shiny)
 library (readr)
@@ -18,7 +18,7 @@ secrets.ldap.filtro <<- 'sAMAccountName'  # use this filter for WINDOWS AD
 secrets.ldap.dominio <<- 'intranet' # LDAP DOMAIN
 secrets.ldap.campos <<- c('dn:', 'cn:', 'sn:', 'title:','displayName:',
                 'name:', 'employeeID:', 'sAMAccountName:', 'mail:',
-                'G_MPTV_MEMBROS', 'G_MPTV_Users','title:')  # LDAP FIELDS TO SHOW
+                'title:')  # LDAP FIELDS TO SHOW
 
 secrets.path <- paste0(find.package('shinyldap'), '/shiny_ldap_demo/secrets.R')
 secrets.path.2 <- paste0(getwd(), '/secrets.R')
@@ -41,29 +41,36 @@ if (file.exists(secrets.path)) {
 # Callback function
 
 ldap.callback.return <- function(res) {
-  message('Callback table_data: ', res$table_data)
-  message('Callback data: ', res$data)
-  message('Callback BTN: ', res$btn)
-  message('Callback ldap: ', res$ldap)
-  message('Callback user: ', res$user)
-  message('Callback error: ', res$err)
+  message('Callback table_data: ',res$table_data )
+  message('* data: ', res$data)
+  message('* BTN: ', res$btn)
+  message('* ldap: ', res$ldap)
+  message('* user: ', res$user)
+  message('* error: ', res$stderr)
+  message('* err.cod: ', res$err.cod)
+  message('* err.msg: ', res$err.msg)
+  message('* status: ', res$status)
 
   react.res$data <- res$data
   react.res$table_data <- res$table_data
   react.res$btn <- res$btn
   react.res$ldap <- res$ldap
   react.res$user <- res$user
-  react.res$err <- res$err
+  react.res$stderr <- res$stderr
+  react.res$err.cod <- res$err.cod
+  react.res$err.msg <- unlist(res$err.msg)
+  react.res$status <- res$status
 
-  ret_msg <- ''
+  ret_msg <- 'nda'
 
-  if (react.res$err == 100) {
+  if (res$err.cod == 100) {
     ret_msg <- "Error: Ldap search command not found! Is 'ldap-utils' installed?"
   }
-  if (react.res$err == 49) {
+  if (res$err.cod == 49) {
     ret_msg <- "Error: Incorrect username or password!"
   }
 
+  message('end callback: ',ret_msg)
   return(ret_msg)
 }
 
@@ -100,8 +107,12 @@ server <- function(input, output, session) {
   output$btn <- renderText(react.res$btn)
   output$ldap <- renderText(react.res$ldap)
   output$user <- renderText(react.res$user)
-  output$err <- renderText(react.res$err)
-
+  output$stderr <- renderText(react.res$stderr)
+  #
+  output$status <- renderText(react.res$status)
+  output$err_msg <- renderText(react.res$err.msg)
+  output$err_cod <- renderText(react.res$err.cod)
+  output$timeout <- renderText(react.res$timeout)
 }
 
 
@@ -110,15 +121,19 @@ server <- function(input, output, session) {
 
 
 ui <- fluidPage(
-  h3('R Shiny LDAP Demo'),
+  h3('R Shiny LDAP Demo v.1.0.3'),
   br('LDAP URL: ', secrets.ldap.url),
   uiOutput('ui_login'),hr(),br('Results: '),br(),
 
-  h1( verbatimTextOutput("information"),br(),
+  h1( 'information:', verbatimTextOutput("information"),br(),
       'Button: ', verbatimTextOutput("btn"),
       'Ldap: ', verbatimTextOutput("ldap"),
       'User: ', verbatimTextOutput("user"),
-      'Error: ', verbatimTextOutput("err")),
+      'stderr: ', verbatimTextOutput("stderr"),
+      'err_msg: ', verbatimTextOutput('err_msg'),
+      'err_code: ', verbatimTextOutput('err_cod'),
+      'status: ',verbatimTextOutput("status"),
+      'timeout: ', verbatimTextOutput("timeout")), h1('Table_Res:'),
   tableOutput('table_res')
 )
 
