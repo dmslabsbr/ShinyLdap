@@ -56,21 +56,27 @@ ldap.callback.return <- function(res) {
   react.res$ldap <- res$ldap
   react.res$user <- res$user
   react.res$stderr <- res$stderr
-  react.res$err.cod <- res$err.cod
+  react.res$err.cod <- unlist(res$err.cod)
   react.res$err.msg <- unlist(res$err.msg)
-  react.res$status <- res$status
-
+  react.res$status <- unlist(res$status)
   ret_msg <- 'nda'
+  ret_wait <- 0
 
-  if (res$err.cod == 100) {
+  if (unlist(res$status) == 100) {
     ret_msg <- "Error: Ldap search command not found! Is 'ldap-utils' installed?"
+    #ret_wait <- time2wait + 2
+    #time2wait <<- ret_wait
   }
-  if (res$err.cod == 49) {
+  if (unlist(res$status) == 49) {
     ret_msg <- "Error: Incorrect username or password!"
+    ret_wait <- time2wait * 2
+    time2wait <<- ret_wait
   }
+  message('end callback _: ',ret_msg)
 
-  message('end callback: ',ret_msg)
-  return(ret_msg)
+  ret <- list(msg = ret_msg, wait = ret_wait)
+
+  return(ret) # ret_msg
 }
 
 
@@ -81,6 +87,8 @@ server <- function(input, output, session) {
   session$onSessionEnded(stopApp)
 
   react.res$data <- 'react.res@data'
+
+  time2wait <<- 10     #time to wait after wrong login
 
   shinyldap::ldap_login(input, output,
                         ui_name = 'ui_login',
@@ -98,7 +106,8 @@ server <- function(input, output, session) {
                         label.title = 'Shiny LDAP Login',
                         show.button.cancel = TRUE,
                         show.button.modal = TRUE,
-                        msg.list = list(empty = 'These fields cannot be empty.'),
+                        msg.list = list(empty = 'These fields cannot be empty.',
+                                        time = 'Please! Wait a moment before login again.'),
                         callback.return = ldap.callback.return)
 
 
@@ -121,7 +130,7 @@ server <- function(input, output, session) {
 
 
 ui <- fluidPage(
-  h3('R Shiny LDAP Demo v.1.0.4'),
+  h3('R Shiny LDAP Demo v.1.0.5'),
   br('LDAP URL: ', secrets.ldap.url),
   uiOutput('ui_login'),hr(),br('Results: '),br(),
 

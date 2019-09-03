@@ -10,7 +10,8 @@ ldap_login(input, output, ui_name, modal = FALSE, ldap.url, ldap.dc,
   label.button.go = "Login", label.button.cancel = "Cancel",
   label.button.modal = "Close", label.title = "Shiny LDAP Login",
   show.button.cancel = TRUE, show.button.modal = FALSE,
-  msg.list = list(empty = "These fields cannot be empty."),
+  msg.list = list(empty = "These fields cannot be empty!", time =
+  "Please! Wait a moment before login again."),
   callback.return = function(result) { })
 }
 \arguments{
@@ -74,7 +75,7 @@ This function allows you to verify a username and password on an LDAP server.
      label.title = 'Shiny LDAP Login',
      show.button.cancel = TRUE,
      show.button.modal = FALSE,
-     msg.list = list(empty = 'These fields cannot be empty.'),
+     msg.list = list(empty = 'These fields cannot be empty!', time = 'Please! Wait a moment before login again.' ),
      callback.return = ldap.callback.return)
 }
 \keyword{ldap}
