@@ -3,7 +3,7 @@
 # by DMS 2019
 
 
-# devtools::install_github('dmslabsbr/ShinyLdap', ref='v.0.23', force = TRUE)
+# devtools::install_github('dmslabsbr/ShinyLdap', ref='v.0.24', force = TRUE)
 
 library (shiny)
 library (readr)
@@ -36,7 +36,6 @@ if (file.exists(secrets.path)) {
   message('loading file: ', secrets.path.2)
   source(secrets.path.2, echo=TRUE) # CONFIG FILE WITH PASSWORD
 }
-
 
 # Callback function
 
@@ -99,6 +98,7 @@ server <- function(input, output, session) {
                         label.title = 'Shiny LDAP Login',
                         show.button.cancel = TRUE,
                         show.button.modal = TRUE,
+                        msg.list = list(empty = 'These fields cannot be empty.'),
                         callback.return = ldap.callback.return)
 
 
@@ -121,7 +121,7 @@ server <- function(input, output, session) {
 
 
 ui <- fluidPage(
-  h3('R Shiny LDAP Demo v.1.0.3'),
+  h3('R Shiny LDAP Demo v.1.0.4'),
   br('LDAP URL: ', secrets.ldap.url),
   uiOutput('ui_login'),hr(),br('Results: '),br(),
 

@@ -19,6 +19,7 @@
 #' @param label.title = Login dialog title
 #' @param show.button.cancel = Show the cancel button
 #' @param show.button.modal = Show the modal button
+#' @param msg.list = Message list
 #' @param callback.return a function called when the user click a response button. This function can
 #'        return a error message.
 #'
@@ -42,6 +43,7 @@
 #'      label.title = 'Shiny LDAP Login',
 #'      show.button.cancel = TRUE,
 #'      show.button.modal = FALSE,
+#'      msg.list = list(empty = 'These fields cannot be empty.'),
 #'      callback.return = ldap.callback.return)
 
 ldap_login <- function(input, output, ui_name, modal = FALSE,
@@ -58,11 +60,12 @@ ldap_login <- function(input, output, ui_name, modal = FALSE,
               label.title = 'Shiny LDAP Login',
               show.button.cancel = TRUE,
               show.button.modal = FALSE,
+              msg.list = list(empty = 'These fields cannot be empty.'),
               callback.return = function (result) {}
 
 ) {
 
-  message('* R Shiny Ldap function v.: ', '0.0.2.3o', ' - - - - ', Sys.time(), ' - - - -')
+  message('* R Shiny Ldap function v.: ', '0.0.2.4', ' - - - - ', Sys.time(), ' - - - -')
   message('Ldap.url: ', ldap.url)
 
   #TODO verificar todos os parametros
@@ -207,7 +210,7 @@ ldap_login <- function(input, output, ui_name, modal = FALSE,
     ret <- list(cod = 'nda', msg = 'nda')
 
     for (i in lista2) {
-      message('ldap-i: ',i)
+      #message('ldap-i: ',i)
       if (any(grep(i,erro))) {
         po <- grep(i,lista2)
         ret$cod <- lista_err[po]
@@ -223,14 +226,20 @@ ldap_login <- function(input, output, ui_name, modal = FALSE,
 
   go_click <- shiny::observeEvent(input[[ui_actBtn]], {
     message('go_click')
+    i.user <- input[[ui_txtUser]]
+    i.pass <- input[[ui_txtPass]]
+    if ((i.user == '') | (i.pass == '')) {
+      output[[ui_txtInfo]] <- shiny::renderPrint(paste0(msg.list$empty));
+      return (TRUE)
+    }
     result$btn <- 'GO'
-    result$user <- input[[ui_txtUser]]
+    result$user <- i.user
     isolate({
       result$err.cod <- 'nda'
       result$err.msg <- 'nda'
     })
     if (temLdap) {
-      dadosRaw <- consultaLdap(input[[ui_txtUser]],input[[ui_txtPass]])
+      dadosRaw <- consultaLdap(i.user,i.pass)
       message('status: ',dadosRaw$status)
       message('stdout: ',dadosRaw$stdout)
       message('stderr: ',dadosRaw$stderr)
