@@ -43,7 +43,7 @@
 #'      label.title = 'Shiny LDAP Login',
 #'      show.button.cancel = TRUE,
 #'      show.button.modal = FALSE,
-#'      msg.list = list(empty = 'These fields cannot be empty.'),
+#'      msg.list = list(empty = 'These fields cannot be empty!', time = 'Please! Wait a moment before login again.' ),
 #'      callback.return = ldap.callback.return)
 
 ldap_login <- function(input, output, ui_name, modal = FALSE,
@@ -60,13 +60,18 @@ ldap_login <- function(input, output, ui_name, modal = FALSE,
               label.title = 'Shiny LDAP Login',
               show.button.cancel = TRUE,
               show.button.modal = FALSE,
-              msg.list = list(empty = 'These fields cannot be empty.'),
+              msg.list = list(empty = 'These fields cannot be empty!',
+                              time = 'Please! Wait a moment before login again.'),
               callback.return = function (result) {}
 
 ) {
 
   message('* R Shiny Ldap function v.: ', '0.0.2.4', ' - - - - ', Sys.time(), ' - - - -')
   message('Ldap.url: ', ldap.url)
+
+  mod.active <- shiny::reactiveVal(FALSE)
+  mod.timer <- shiny::reactiveVal(10)
+
 
   #TODO verificar todos os parametros
 
@@ -102,6 +107,7 @@ ldap_login <- function(input, output, ui_name, modal = FALSE,
   ui_actBtn <- paste0(ui_name,'_GO')
   ui_closeBtn <- paste0(ui_name,'_CLOSE')
   ui_txtInfo <- paste0(ui_name,'txtInfo')
+  ui_txtclock <- paste0(ui_name,'txtclock')
 
   result <- list()
   result$ldap <- FALSE
@@ -121,17 +127,49 @@ ldap_login <- function(input, output, ui_name, modal = FALSE,
 
   }
 
-  modal_ui <- function() {
-    ui_act <- shiny::actionButton(ui_actBtn, label.button.go)
-    ui_clo <- shiny::actionButton(ui_closeBtn, label.button.cancel)
-    ui_mod <- shiny::modalButton(label.button.modal)
+  modal_clock <- function() {
+
+  }
+
+
+  modal_ui <- function(show.bt = TRUE) {
+    shiny::isolate({
+      ui_act <- shiny::actionButton(ui_actBtn, label.button.go)
+      ui_clo <- shiny::actionButton(ui_closeBtn, label.button.cancel)
+      ui_mod <- shiny::modalButton(label.button.modal)
+      ui_u.1 <- shiny::textInput(ui_txtUser,label.user,"")
+      ui_u.2 <- shiny::passwordInput(ui_txtPass,label.pass,"")
+    })
+    ui_clock <- ''
+    col1 <- 7
+    col2 <- 5
+    if (!show.bt) {
+      shiny::isolate({
+        ui_act <- ''
+        ui_clo <- ''
+        ui_mod <- ''
+        ui_u.1 <- shiny::h2(msg.list$time, align = 'CENTER')
+        col1 <- 12
+      })
+      #ui_clock <- shiny::column(1, #5
+      #                          shiny::h2(
+      #                            shiny::textOutput(ui_txtclock), align = 'CENTER', style = "color:red"
+      #                          ))
+      ui_u.2 <- shiny::h2(shiny::textOutput(ui_txtclock), align = 'CENTER', style = "color:red")
+    }
     if (!show.button.cancel) {ui_clo <- shiny::div()}
     if (!show.button.modal) {ui_mod <- shiny::div()}
     shiny::modalDialog(title = label.title,
                                  shiny::div(
-                                   shiny::textInput(ui_txtUser,label.user,""),
-                                   shiny::passwordInput(ui_txtPass,label.pass,"")),
-                                 shiny::h2( shiny::verbatimTextOutput(ui_txtInfo), ''),
+                                   shiny::fluidPage(
+                                     shiny::fluidRow(
+                                       shiny::column(col1, #7
+                                                     ui_u.1,
+                                                     ui_u.2),
+                                       ui_clock
+                                       )
+                                       )),
+                                 shiny::h2( shiny::verbatimTextOutput(ui_txtInfo), style = "color:red", ''),
                                  footer = shiny::column(
                                    ui_act,
                                    ui_clo,
@@ -139,6 +177,7 @@ ldap_login <- function(input, output, ui_name, modal = FALSE,
                                    width = 12)
     )
   }
+
 
   if (modal) {
     shiny::showModal(modal_ui())
@@ -234,7 +273,7 @@ ldap_login <- function(input, output, ui_name, modal = FALSE,
     }
     result$btn <- 'GO'
     result$user <- i.user
-    isolate({
+    shiny::isolate({
       result$err.cod <- 'nda'
       result$err.msg <- 'nda'
     })
@@ -264,22 +303,51 @@ ldap_login <- function(input, output, ui_name, modal = FALSE,
       result$status <- '100'
     }
     chama <- callback.return(result)
-    message("callback_chama: ", chama )
+    chama.msg <- unlist(chama$msg)
+    chama.wait <- unlist(chama$wait)
+    message("callback_chama: ", chama.msg)
+    message("* WAIT: ", chama.wait)
     if (modal) {
-      if (chama == 'nda') {
+      if (chama.msg == 'nda') {
         shiny::removeModal()
         message("removeModal: ", 'modal' )
       } else {
         message("output: ", 'ui_txtInfo' )
-        output[[ui_txtInfo]] <- shiny::renderPrint(paste0(chama));
+        output[[ui_txtInfo]] <- shiny::renderPrint(paste0(chama$msg));
+        if (chama.wait>0) {
+          mod.timer(chama.wait)
+          shiny::showModal(modal_ui(FALSE))
+          mod.active(TRUE)
+        }
       }
     }
   })
 
 
+  #time counter
+  shiny::observe({
+    shiny::invalidateLater(1001, shiny::getDefaultReactiveDomain())  # session
+    shiny::isolate({
+      if(mod.active()) {
+        mod.timer(mod.timer()-1)
+        if(mod.timer()<1) {
+          mod.active(FALSE)
+          if (modal) {
+            shiny::showModal(modal_ui())
+          }
+        }
+      }
+    })
+  })
+
+  if (modal) {
+    output[[ui_txtclock]] <- shiny::renderText(format(as.difftime(mod.timer(), units="secs")))
+  }
+
   close_click <- shiny::observeEvent(input[[ui_closeBtn]], {
     message('close_click')
     result$btn <- 'CANCEL'
+    result$err.cod <- 0
     chama <- callback.return(result)
     if (modal) {shiny::removeModal()}
   })
