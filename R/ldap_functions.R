@@ -1,3 +1,36 @@
+#' Show dtedit version
+#'
+#' @return version
+#'
+#' @export
+version <- function() {
+  res <- '0.0.25b'
+  return(res)
+}
+
+
+#' Create a ui for modal shinyldap
+#'
+#' login_ui - user-interface function
+#'
+#' Use in conjunction with \code{callModule} and \code{dtedit} to create
+#' editable datatables. \code{dteditUI} is used in the 'user interface' component
+#' of the shiny app.
+#'
+#' @param id the namespace of the module
+#' @family Datatable Edit functions
+#' @example inst/shiny_ldap_demo/app-module.R
+#' @export
+loginUI <- function(id) {
+  ns <- shiny::NS(id)
+  shiny::tagList(
+    shiny::uiOutput(ns("loginUi"))
+  )
+}
+
+
+
+
 #' A ldap_login function
 #'
 #' This function allows you to verify a username and password on an LDAP server.
@@ -46,7 +79,8 @@
 #'      msg.list = list(empty = 'These fields cannot be empty!', time = 'Please! Wait a moment before login again.' ),
 #'      callback.return = ldap.callback.return)
 
-ldap_login <- function(input, output, ui_name, modal = FALSE,
+ldap_login <- function(input, output, session,
+              ui_name, modal = FALSE,
               ldap.url,
               ldap.dc,
               ldap.filtro = 'sAMAccountName', # for AD LDAP Server
@@ -66,12 +100,14 @@ ldap_login <- function(input, output, ui_name, modal = FALSE,
 
 ) {
 
-  message('* R Shiny Ldap function v.: ', '0.0.2.4', ' - - - - ', Sys.time(), ' - - - -')
   message('Ldap.url: ', ldap.url)
+
+  login_space <- 'loginUi'
 
   mod.active <- shiny::reactiveVal(FALSE)
   mod.timer <- shiny::reactiveVal(10)
 
+  browser()
 
   #TODO verificar todos os parametros
 
@@ -133,13 +169,16 @@ ldap_login <- function(input, output, ui_name, modal = FALSE,
 
 
   modal_ui <- function(show.bt = TRUE) {
-    shiny::isolate({
-      ui_act <- shiny::actionButton(ui_actBtn, label.button.go)
-      ui_clo <- shiny::actionButton(ui_closeBtn, label.button.cancel)
+    # try to isolate
+    ns <- session$ns
+
+    #shiny::isolate({
+      ui_act <- shiny::actionButton(ns(ui_actBtn), label.button.go)
+      ui_clo <- shiny::actionButton(ns(ui_closeBtn), label.button.cancel)
       ui_mod <- shiny::modalButton(label.button.modal)
-      ui_u.1 <- shiny::textInput(ui_txtUser,label.user,"")
-      ui_u.2 <- shiny::passwordInput(ui_txtPass,label.pass,"")
-    })
+      ui_u.1 <- shiny::textInput(ns(ui_txtUser),label.user,"")
+      ui_u.2 <- shiny::passwordInput(ns(ui_txtPass),label.pass,"")
+    #})
     ui_clock <- ''
     col1 <- 7
     col2 <- 5
@@ -155,7 +194,8 @@ ldap_login <- function(input, output, ui_name, modal = FALSE,
       #                          shiny::h2(
       #                            shiny::textOutput(ui_txtclock), align = 'CENTER', style = "color:red"
       #                          ))
-      ui_u.2 <- shiny::h2(shiny::textOutput(ui_txtclock), align = 'CENTER', style = "color:red")
+      ui_u.2 <- shiny::h2(shiny::textOutput(ns(ui_txtclock)),
+                          align = 'CENTER', style = "color:red")
     }
     if (!show.button.cancel) {ui_clo <- shiny::div()}
     if (!show.button.modal) {ui_mod <- shiny::div()}
@@ -169,7 +209,7 @@ ldap_login <- function(input, output, ui_name, modal = FALSE,
                                        ui_clock
                                        )
                                        )),
-                                 shiny::h2( shiny::verbatimTextOutput(ui_txtInfo), style = "color:red", ''),
+                                 shiny::h2( shiny::verbatimTextOutput(ns(ui_txtInfo)), style = "color:red", ''),
                                  footer = shiny::column(
                                    ui_act,
                                    ui_clo,
@@ -273,6 +313,7 @@ ldap_login <- function(input, output, ui_name, modal = FALSE,
     }
     result$btn <- 'GO'
     result$user <- i.user
+    result$token <- session$token
     shiny::isolate({
       result$err.cod <- 'nda'
       result$err.msg <- 'nda'
@@ -302,7 +343,7 @@ ldap_login <- function(input, output, ui_name, modal = FALSE,
       result$err.msg <- result$data
       result$status <- '100'
     }
-    chama <- callback.return(result)
+    chama <- callback.return(result)  # token
     chama.msg <- unlist(chama$msg)
     chama.wait <- unlist(chama$wait)
     message("callback_chama: ", chama.msg)
@@ -348,6 +389,7 @@ ldap_login <- function(input, output, ui_name, modal = FALSE,
     message('close_click')
     result$btn <- 'CANCEL'
     result$err.cod <- 0
+    result$token <- session$token
     chama <- callback.return(result)
     if (modal) {shiny::removeModal()}
   })

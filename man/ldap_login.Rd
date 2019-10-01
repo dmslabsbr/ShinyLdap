@@ -4,8 +4,8 @@
 \alias{ldap_login}
 \title{A ldap_login function}
 \usage{
-ldap_login(input, output, ui_name, modal = FALSE, ldap.url, ldap.dc,
-  ldap.filtro = "sAMAccountName", ldap.dominio, ldap.campos,
+ldap_login(input, output, session, ui_name, modal = FALSE, ldap.url,
+  ldap.dc, ldap.filtro = "sAMAccountName", ldap.dominio, ldap.campos,
   label.user = "User", label.pass = "Password",
   label.button.go = "Login", label.button.cancel = "Cancel",
   label.button.modal = "Close", label.title = "Shiny LDAP Login",

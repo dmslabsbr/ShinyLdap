@@ -9,6 +9,7 @@ user-nao-existe.csv
 data-test.txt
 *.zip
 *.csv
+*.url
 server.R
 ui.R
 global.R
