@@ -4,7 +4,7 @@
 #'
 #' @export
 version <- function() {
-  res <- '0.0.25b'
+  res <- '0.0.25c'
   return(res)
 }
 
@@ -107,7 +107,7 @@ ldap_login <- function(input, output, session,
   mod.active <- shiny::reactiveVal(FALSE)
   mod.timer <- shiny::reactiveVal(10)
 
-  browser()
+  #browser()
 
   #TODO verificar todos os parametros
 
